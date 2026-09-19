@@ -1,0 +1,506 @@
+{
+  "name": "06 - Crear solicitud",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "solicitudes",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://n8n.marcomont.com"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "24831fe5-3b32-436c-8503-2b8d5134f510",
+      "name": "Webhook",
+      "webhookId": "e9288fd5-95bd-4cb7-95c9-bc8601916a73"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pasa el header cookie crudo al sub-workflow de validación.\nconst cookie = $input.first().json.headers?.cookie || '';\nreturn [{ json: { cookie } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        0
+      ],
+      "id": "a432714c-ab5b-438a-ba3c-7d751c00a038",
+      "name": "Preparar cookie"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "kEB3KGEjbf49wYFT",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/kEB3KGEjbf49wYFT",
+          "cachedResultName": "03 - Sub: Validar sesion"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        0
+      ],
+      "id": "ca0e133e-3988-4ba4-a8d4-7ab1fba7dd87",
+      "name": "Validar sesion"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4daadded-1f0f-4564-ac5f-b20316eeb514",
+              "leftValue": "={{ $json.autorizado }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        560,
+        0
+      ],
+      "id": "33b16e83-264f-4acf-b55d-f7f965cb0a14",
+      "name": "Autorizado?"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "15a6l7kRYcndH-hXF804As5jPfnV-vbPlb-YrVbiquM0",
+          "mode": "list",
+          "cachedResultName": "Datos Prueba Analista BPA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15a6l7kRYcndH-hXF804As5jPfnV-vbPlb-YrVbiquM0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1370212836,
+          "mode": "list",
+          "cachedResultName": "Solicitudes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15a6l7kRYcndH-hXF804As5jPfnV-vbPlb-YrVbiquM0/edit#gid=1370212836"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        816,
+        -96
+      ],
+      "id": "9d2e37bd-e6f1-42ad-b77d-b63b5a9997eb",
+      "name": "Obtener todas las solicitudes",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleApi": {
+          "id": "t2UeFlVeyUvzlVSU",
+          "name": "Google Sheets - VUO Project"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Toma el body de la petición (viene del Webhook) y arma la fila nueva,\n// calculando el próximo ID autoincremental tipo \"SOL-021\".\n\nconst body = $('Webhook').first().json.body || {};\nconst filas = $input.all().map(i => i.json);\n\n// Busca el número más alto entre los IDs existentes (SOL-001, SOL-002, ...)\nlet maxNum = 0;\nfor (const fila of filas) {\n  const id = String(fila['ID Solicitud'] || '');\n  const match = id.match(/SOL-(\\d+)/);\n  if (match) {\n    const num = parseInt(match[1], 10);\n    if (num > maxNum) maxNum = num;\n  }\n}\nconst nuevoId = `SOL-${String(maxNum + 1).padStart(3, '0')}`;\n\n// Validación mínima de campos requeridos\nconst requeridos = ['solicitante', 'correo', 'area', 'tipoSolicitud', 'descripcion', 'prioridad'];\nconst faltantes = requeridos.filter(campo => !body[campo] || String(body[campo]).trim() === '');\n\nif (faltantes.length > 0) {\n  return [{\n    json: {\n      valido: false,\n      error: `Faltan campos requeridos: ${faltantes.join(', ')}`,\n    },\n  }];\n}\n\nreturn [{\n  json: {\n    valido: true,\n    'ID Solicitud': nuevoId,\n    'Fecha Solicitud': new Date().toLocaleDateString('es-DO'),\n    'ID Empleado': body.idEmpleado || '',\n    'Solicitante': body.solicitante,\n    'Correo': body.correo,\n    'Area': body.area,\n    'Tipo Solicitud': body.tipoSolicitud,\n    'Descripcion': body.descripcion,\n    'Prioridad': body.prioridad,\n    'Estado': 'Pendiente',\n    'Nombre Archivo': body.nombreArchivo || '',\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        -96
+      ],
+      "id": "52b271be-3493-4aaf-971b-4cf7911a0a87",
+      "name": "Preparar nueva solicitud"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"ok\": false, \"mensaje\": \"No autorizado. Inicia sesión de nuevo.\"}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        816,
+        96
+      ],
+      "id": "ea35bb57-a89c-4980-b39a-5d7a9ebea35e",
+      "name": "Responder 401"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "99dded1f-917b-4a1e-b51f-8f45474004f2",
+              "leftValue": "={{ $json.valido }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1248,
+        -96
+      ],
+      "id": "ddb2f640-c7a8-455a-86f2-ff8a80a883cd",
+      "name": "¿Datos válidos?"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "15a6l7kRYcndH-hXF804As5jPfnV-vbPlb-YrVbiquM0",
+          "mode": "list",
+          "cachedResultName": "Datos Prueba Analista BPA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15a6l7kRYcndH-hXF804As5jPfnV-vbPlb-YrVbiquM0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1370212836,
+          "mode": "list",
+          "cachedResultName": "Solicitudes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15a6l7kRYcndH-hXF804As5jPfnV-vbPlb-YrVbiquM0/edit#gid=1370212836"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID Solicitud": "={{ $json[\"ID Solicitud\"] }}",
+            "Fecha Solicitud": "={{ $json[\"Fecha Solicitud\"] }}",
+            "ID Empleado": "={{ $json[\"ID Empleado\"] }}",
+            "Solicitante": "={{ $json[\"Solicitante\"] }}",
+            "Correo": "={{ $json[\"Correo\"] }}",
+            "Area": "={{ $json[\"Area\"] }}",
+            "Tipo Solicitud": "={{ $json[\"Tipo Solicitud\"] }}",
+            "Descripcion": "={{ $json[\"Descripcion\"] }}",
+            "Prioridad": "={{ $json[\"Prioridad\"] }}",
+            "Estado": "={{ $json[\"Estado\"] }}",
+            "Nombre Archivo": "={{ $json[\"Nombre Archivo\"] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ID Solicitud",
+              "displayName": "ID Solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fecha Solicitud",
+              "displayName": "Fecha Solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ID Empleado",
+              "displayName": "ID Empleado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Solicitante",
+              "displayName": "Solicitante",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Correo",
+              "displayName": "Correo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Area",
+              "displayName": "Area",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tipo Solicitud",
+              "displayName": "Tipo Solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Descripcion",
+              "displayName": "Descripcion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Prioridad",
+              "displayName": "Prioridad",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nombre Archivo",
+              "displayName": "Nombre Archivo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1504,
+        -176
+      ],
+      "id": "455dec2c-bee5-4c36-8582-582885b8bf3d",
+      "name": "Agregar solicitud",
+      "credentials": {
+        "googleApi": {
+          "id": "t2UeFlVeyUvzlVSU",
+          "name": "Google Sheets - VUO Project"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ok: false, mensaje: $json.error}) }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1504,
+        32
+      ],
+      "id": "eaadf93e-32d9-4b26-b1da-c3c6d9dcdc8f",
+      "name": "Responder datos inválidos"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ok: true, solicitud: $json}) }}",
+        "options": {
+          "responseCode": 201
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1712,
+        -176
+      ],
+      "id": "5885d040-a68d-4fca-8add-21081c068b6f",
+      "name": "Responder creada"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Preparar cookie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar cookie": {
+      "main": [
+        [
+          {
+            "node": "Validar sesion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar sesion": {
+      "main": [
+        [
+          {
+            "node": "Autorizado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autorizado?": {
+      "main": [
+        [
+          {
+            "node": "Obtener todas las solicitudes",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder 401",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener todas las solicitudes": {
+      "main": [
+        [
+          {
+            "node": "Preparar nueva solicitud",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar nueva solicitud": {
+      "main": [
+        [
+          {
+            "node": "¿Datos válidos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Datos válidos?": {
+      "main": [
+        [
+          {
+            "node": "Agregar solicitud",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder datos inválidos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar solicitud": {
+      "main": [
+        [
+          {
+            "node": "Responder creada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "f9e329fd-01c5-4977-a4f7-31fac44d4132",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "367f933d060a42c25c380c5b3266dd46e8cc28982c86f4fc36519767ad468e58"
+  },
+  "nodeGroups": [],
+  "id": "SrI6YCyy18ifaifZ",
+  "tags": []
+}

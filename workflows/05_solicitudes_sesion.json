@@ -1,0 +1,246 @@
+{
+  "name": "05 - Solicitudes: Listar",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "solicitudes",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://n8n.marcomont.com"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "1bbe3fc6-f99f-48fe-8488-cbf74eeca0be",
+      "name": "Webhook",
+      "webhookId": "2121ab65-fde3-4ef3-b8a0-623713ed09b3"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pasa el header cookie crudo al sub-workflow de validación.\nconst cookie = $input.first().json.headers?.cookie || '';\nreturn [{ json: { cookie } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "e486b640-184b-4a99-aa64-adca9af6f8c6",
+      "name": "Preparar cookie"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "kEB3KGEjbf49wYFT",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/kEB3KGEjbf49wYFT",
+          "cachedResultName": "03 - Sub: Validar sesion"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "db9acf5f-ae97-4e2d-86b6-697dfdfb6429",
+      "name": "Validar sesion"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4daadded-1f0f-4564-ac5f-b20316eeb514",
+              "leftValue": "={{ $json.autorizado }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        624,
+        0
+      ],
+      "id": "40fed0dc-a9f7-4bff-ba08-22d5aff67552",
+      "name": "Autorizado?"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "15a6l7kRYcndH-hXF804As5jPfnV-vbPlb-YrVbiquM0",
+          "mode": "list",
+          "cachedResultName": "Datos Prueba Analista BPA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15a6l7kRYcndH-hXF804As5jPfnV-vbPlb-YrVbiquM0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1370212836,
+          "mode": "list",
+          "cachedResultName": "Solicitudes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15a6l7kRYcndH-hXF804As5jPfnV-vbPlb-YrVbiquM0/edit#gid=1370212836"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        880,
+        -64
+      ],
+      "id": "9e658ec5-7bd5-46d0-8db1-d467d5dda1fe",
+      "name": "Obtener solicitudes",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleApi": {
+          "id": "t2UeFlVeyUvzlVSU",
+          "name": "Google Sheets - VUO Project"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"ok\": false, \"mensaje\": \"No autorizado. Inicia sesión de nuevo.\"}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        880,
+        112
+      ],
+      "id": "567900ad-e266-4062-9652-491ed9a808a7",
+      "name": "Responder 401"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ok: true, solicitudes: $input.all().map(i => i.json)}) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1088,
+        -64
+      ],
+      "id": "bc8985aa-2d97-402a-b5cc-27576a9d462a",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Preparar cookie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar cookie": {
+      "main": [
+        [
+          {
+            "node": "Validar sesion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar sesion": {
+      "main": [
+        [
+          {
+            "node": "Autorizado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autorizado?": {
+      "main": [
+        [
+          {
+            "node": "Obtener solicitudes",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder 401",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener solicitudes": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "a5143361-bb14-42ae-aa5d-fd7c455b40a0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "367f933d060a42c25c380c5b3266dd46e8cc28982c86f4fc36519767ad468e58"
+  },
+  "nodeGroups": [],
+  "id": "UoBMjrnzrFVKZCwj",
+  "tags": []
+}

@@ -1,0 +1,588 @@
+{
+  "name": "08 - Solicitudes: Actualizar estado",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "PATCH",
+        "path": "solicitud",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://n8n.marcomont.com"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -528,
+        0
+      ],
+      "id": "4fba079c-6ff6-471c-8efc-7fae5c326c3e",
+      "name": "Webhook",
+      "webhookId": "1630ea9c-2463-425d-94a3-8cb973f87646"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pasa el header cookie crudo al sub-workflow de validación.\nconst cookie = $input.first().json.headers?.cookie || '';\nreturn [{ json: { cookie } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        0
+      ],
+      "id": "750e6fcb-a96c-44fe-8c09-c089e3aaaae9",
+      "name": "Preparar cookie"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "kEB3KGEjbf49wYFT",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/kEB3KGEjbf49wYFT",
+          "cachedResultName": "03 - Sub: Validar sesion"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -128,
+        0
+      ],
+      "id": "d4b37646-61fb-42a5-b428-7f064e22fe7e",
+      "name": "Validar sesion"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4daadded-1f0f-4564-ac5f-b20316eeb514",
+              "leftValue": "={{ $json.autorizado }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        64,
+        0
+      ],
+      "id": "624e80fe-28bd-4c07-9552-615bd82cf1d8",
+      "name": "Autorizado?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"ok\": false, \"mensaje\": \"No autorizado. Inicia sesión de nuevo.\"}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        288,
+        160
+      ],
+      "id": "45617846-f245-485f-842f-80fcb3c5a042",
+      "name": "Responder 401"
+    },
+    {
+      "parameters": {
+        "jsCode": "const ESTADOS_VALIDOS = ['Pendiente', 'En Proceso', 'Aprobada', 'Rechazada', 'Completada'];\n\nconst body = $('Webhook').first().json.body || {};\nconst id = body.id;\nconst estado = body.estado;\n\nlet valido = true;\nlet error = '';\n\nif (!id) {\n  valido = false;\n  error = 'Falta el campo id.';\n} else if (!estado) {\n  valido = false;\n  error = 'Falta el campo estado.';\n} else if (!ESTADOS_VALIDOS.includes(estado)) {\n  valido = false;\n  error = `Estado inválido. Valores permitidos: ${ESTADOS_VALIDOS.join(', ')}.`;\n}\n\nreturn [{\n  json: { valido, error, id, estado }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        288,
+        -16
+      ],
+      "id": "016c7e6d-9b20-4977-aa89-75ca6f64d7a7",
+      "name": "Validar datos"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "430159c8-8c42-40a7-b32c-a7f763faf72f",
+              "leftValue": "={{ $json.valido }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        496,
+        -16
+      ],
+      "id": "0ebde19d-35ca-41a6-9099-cc5302fc1e7f",
+      "name": "¿Datos válidos?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: false, mensaje: $json.error }) }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        736,
+        160
+      ],
+      "id": "2f76d7b5-7e36-46b3-ae5c-363eeb4172fd",
+      "name": "Responder 400"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "15a6l7kRYcndH-hXF804As5jPfnV-vbPlb-YrVbiquM0",
+          "mode": "list",
+          "cachedResultName": "Datos Prueba Analista BPA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15a6l7kRYcndH-hXF804As5jPfnV-vbPlb-YrVbiquM0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1370212836,
+          "mode": "list",
+          "cachedResultName": "Solicitudes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15a6l7kRYcndH-hXF804As5jPfnV-vbPlb-YrVbiquM0/edit#gid=1370212836"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "ID Solicitud",
+              "lookupValue": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        736,
+        -32
+      ],
+      "id": "e35b3805-8cff-4a36-ae65-a71274b6bbe0",
+      "name": "Buscar solicitud a actualizar",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleApi": {
+          "id": "t2UeFlVeyUvzlVSU",
+          "name": "Google Sheets - VUO Project"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1ab61120-51af-420b-b3d3-3ca13dce1028",
+              "leftValue": "={{ $json[\"ID Solicitud\"] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        944,
+        -32
+      ],
+      "id": "6d15605e-7964-480d-8904-3aca359193a0",
+      "name": "Existe?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: false, mensaje: $json.error }) }}",
+        "options": {
+          "responseCode": 404
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1184,
+        80
+      ],
+      "id": "c061fb12-2b25-495a-991b-6d7764580dfa",
+      "name": "Responder 404"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "15a6l7kRYcndH-hXF804As5jPfnV-vbPlb-YrVbiquM0",
+          "mode": "list",
+          "cachedResultName": "Datos Prueba Analista BPA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15a6l7kRYcndH-hXF804As5jPfnV-vbPlb-YrVbiquM0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1370212836,
+          "mode": "list",
+          "cachedResultName": "Solicitudes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15a6l7kRYcndH-hXF804As5jPfnV-vbPlb-YrVbiquM0/edit#gid=1370212836"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID Solicitud": "={{ $json[\"ID Solicitud\"] }}",
+            "Estado": "={{ $('Validar datos').first().json.estado }}"
+          },
+          "matchingColumns": [
+            "ID Solicitud"
+          ],
+          "schema": [
+            {
+              "id": "ID Solicitud",
+              "displayName": "ID Solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Fecha Solicitud",
+              "displayName": "Fecha Solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ID Empleado",
+              "displayName": "ID Empleado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Solicitante",
+              "displayName": "Solicitante",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Correo",
+              "displayName": "Correo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Area",
+              "displayName": "Area",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tipo Solicitud",
+              "displayName": "Tipo Solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Descripcion",
+              "displayName": "Descripcion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Prioridad",
+              "displayName": "Prioridad",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nombre Archivo",
+              "displayName": "Nombre Archivo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1152,
+        -128
+      ],
+      "id": "3ee8b722-6693-477a-b1f3-3bc6506bb621",
+      "name": "Actualizar estado",
+      "credentials": {
+        "googleApi": {
+          "id": "t2UeFlVeyUvzlVSU",
+          "name": "Google Sheets - VUO Project"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, mensaje: \"Estado actualizado.\", id: $json[\"ID Solicitud\"], estado: $('Validar datos').first().json.estado }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1360,
+        -128
+      ],
+      "id": "74a51e36-27b4-46cb-91ee-39507d50c219",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Preparar cookie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar cookie": {
+      "main": [
+        [
+          {
+            "node": "Validar sesion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar sesion": {
+      "main": [
+        [
+          {
+            "node": "Autorizado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autorizado?": {
+      "main": [
+        [
+          {
+            "node": "Validar datos",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder 401",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar datos": {
+      "main": [
+        [
+          {
+            "node": "¿Datos válidos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Datos válidos?": {
+      "main": [
+        [
+          {
+            "node": "Buscar solicitud a actualizar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder 400",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar solicitud a actualizar": {
+      "main": [
+        [
+          {
+            "node": "Existe?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Existe?": {
+      "main": [
+        [
+          {
+            "node": "Actualizar estado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder 404",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar estado": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "7b5a8e59-c44d-4df5-afb9-272dc63047cd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "367f933d060a42c25c380c5b3266dd46e8cc28982c86f4fc36519767ad468e58"
+  },
+  "nodeGroups": [],
+  "id": "RvH2wLqVzOQOuRq7",
+  "tags": []
+}
