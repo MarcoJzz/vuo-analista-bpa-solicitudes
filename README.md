@@ -226,6 +226,23 @@ La razón es el despliegue: un solo archivo que se pega en un nodo significa cer
 
 **Sobre normalización de datos:** el desplegable de áreas mostraba "Tecnologia" y "Tecnología" como dos áreas distintas, porque en la hoja el valor venía escrito de ambas formas. La causa raíz está en los datos y se corrige ahí; un frontend defensivo que normalice acentos y mayúsculas al poblar los filtros sería la protección adecuada contra datos sucios.
 
+### 4.10 La etiqueta y el valor son cosas distintas
+
+La aplicación es para una empresa hispanohablante, así que toda la interfaz está acentuada: "Gestión de Solicitudes", "Enviar código", "Correo electrónico", "Cerrar sesión", "Información de la solicitud".
+
+Donde esto se vuelve una decisión de diseño y no una corrección ortográfica es en los valores que vienen de la hoja. `Tecnologia`, `Gestion Financiera`, `Cotizacion` y `Certificacion` llegaron así en los datos originales, y son al mismo tiempo lo que se muestra en pantalla, lo que se guarda al crear una solicitud y lo que se compara al filtrar.
+
+Tuve dos opciones:
+
+| | Qué implica |
+|---|---|
+| **Reescribir el dato** (acentuar la hoja) | Hay que tocar las 20 filas, los desplegables del formulario y los 20 PDF generados, los tres a la vez. Cualquier desajuste reproduce exactamente el bug de "Tecnologia" vs "Tecnología": dos áreas donde hay una. |
+| **Separar etiqueta de valor** | El `<option>` lleva `value="Tecnologia"` y muestra `Tecnología`. El dato que viaja al backend y el que se compara al filtrar no cambian. |
+
+Elegí la segunda. Un pequeño mapa (`ETIQUETAS_DATO`) traduce valor → etiqueta en los tres puntos donde el dato se muestra: la tabla, el detalle y los desplegables. El registro sigue siendo el de la hoja; lo que cambia es cómo se lee.
+
+La lección de fondo: **acentuar un dato no es formatearlo, es cambiarlo.** Lo que se corrige en la pantalla se corrige en la pantalla; el registro se toca solo cuando se decide migrar los datos de verdad, y eso es un cambio con su propia ventana y su propia verificación.
+
 ---
 
 ## 5. Limitaciones conocidas
@@ -240,7 +257,7 @@ Ordenadas por lo que cerraría primero si tuviera más tiempo:
 6. **La paginación es del lado del cliente.** El listado trae todas las solicitudes y las pagina en el navegador. Con 20 filas es lo correcto —evita una petición por página—, pero con miles habría que paginar en el servidor.
 7. **Sin roles funcionales.** El rol se muestra en la interfaz pero no restringe nada; cualquier usuario autenticado puede cambiar cualquier estado o anular cualquier solicitud.
 8. **En móvil la tabla hace scroll horizontal** en vez de reorganizarse en tarjetas. Funciona, pero no es la mejor experiencia.
-9. **Sin tests automatizados del backend.** El frontend sí se validó con una suite de Playwright durante el desarrollo (95 comprobaciones sobre login, listado, orden, filtros, paginación, anulación y tema).
+9. **Sin tests automatizados del backend.** El frontend sí se validó con una suite de Playwright durante el desarrollo (129 comprobaciones sobre login, listado, orden, filtros, paginación, anulación, tema y separación etiqueta/valor).
 10. **Los usuarios se dan de alta a mano** en la hoja `Usuarios`. No hay auto-registro, y es deliberado: en un sistema interno el alta la hace RR.HH. o TI, no el propio empleado. Un flujo de alta sería trabajo adicional.
 
 ---

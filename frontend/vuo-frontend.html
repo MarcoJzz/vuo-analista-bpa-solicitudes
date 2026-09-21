@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Gestion de Solicitudes | VÜO Partners</title>
+<title>Gestión de Solicitudes | VÜO Partners</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -713,6 +713,63 @@ select {
   margin-left: auto;
 }
 
+/* ---------- paginacion ---------- */
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 13px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.pager-info {
+  font-size: 12.5px;
+  color: var(--text-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.pager-btns { display: flex; align-items: center; gap: 5px; }
+
+.pager-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 9px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-soft);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.pager-btn:hover:not(:disabled):not(.is-on) {
+  background: var(--surface-alt);
+  color: var(--text);
+}
+.pager-btn:disabled { opacity: .4; cursor: not-allowed; }
+.pager-btn.is-on {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+  cursor: default;
+}
+.pager-hueco {
+  padding: 0 3px;
+  color: var(--text-faint);
+  font-size: 13px;
+  user-select: none;
+}
+
+@media (max-width: 520px) {
+  .pager { justify-content: center; }
+  .pager-info { width: 100%; text-align: center; }
+}
+
 .count-pill {
   font-size: 12.5px;
   color: var(--text-soft);
@@ -807,6 +864,69 @@ tbody tr:last-child td { border-bottom: none; }
 .badge-aprobada   { background: var(--st-apr-bg);  color: var(--st-apr); }
 .badge-rechazada  { background: var(--st-rech-bg); color: var(--st-rech); }
 .badge-completada { background: var(--st-comp-bg); color: var(--st-comp); }
+.badge-anulada {
+  background: transparent;
+  color: var(--text-faint);
+  border: 1px dashed var(--border-strong);
+}
+
+/* ---------- accion destructiva ---------- */
+.btn-danger {
+  background: transparent;
+  color: var(--brand-dark);
+  border: 1px solid var(--brand);
+}
+.btn-danger:hover:not(:disabled) { background: var(--brand); color: #fff; border-color: var(--brand); }
+
+.btn-restaurar {
+  background: transparent;
+  color: var(--text-soft);
+  border: 1px solid var(--border-strong);
+}
+.btn-restaurar:hover:not(:disabled) { background: var(--surface-alt); color: var(--text); }
+
+/* la accion de borrar se separa del resto para que no se pulse por inercia */
+.estado-bar .peligro { margin-left: auto; }
+
+/* ---------- dialogo de confirmacion ---------- */
+.modal-fondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 13, .55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 200;
+}
+.modal-fondo.hidden { display: none; }
+
+.modal {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--brand);
+  border-radius: 4px 4px var(--radius) var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 26px 26px 22px;
+}
+.modal h3 {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+.modal p { margin: 0 0 6px; font-size: 13.5px; color: var(--text-soft); line-height: 1.6; }
+.modal .nota {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  background: var(--surface-alt);
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  color: var(--text-soft);
+}
+.modal-btns { display: flex; gap: 9px; justify-content: flex-end; margin-top: 20px; }
 
 .prio { font-size: 12.5px; font-weight: 600; }
 .prio-alta { color: var(--brand-ink); }
@@ -993,15 +1113,15 @@ tbody tr:last-child td { border-bottom: none; }
 <div id="view-login" class="auth-wrap">
   <div class="auth-card">
     <div class="logo-lg" role="img" aria-label="VÜO Partners"></div>
-    <h1>Gestion de Solicitudes</h1>
-    <p class="sub">Ingresa tu correo corporativo y te enviaremos un codigo de acceso de un solo uso.</p>
+    <h1>Gestión de Solicitudes</h1>
+    <p class="sub">Ingresa tu correo corporativo y te enviaremos un código de acceso de un solo uso.</p>
     <div id="login-msg"></div>
     <form id="form-login">
       <div class="field">
-        <label for="login-email">Correo electronico</label>
+        <label for="login-email">Correo electrónico</label>
         <input type="email" id="login-email" placeholder="nombre@empresa.com" autocomplete="email" required>
       </div>
-      <button type="submit" class="btn btn-primary btn-block" id="btn-login">Enviar codigo</button>
+      <button type="submit" class="btn btn-primary btn-block" id="btn-login">Enviar código</button>
     </form>
   </div>
 </div>
@@ -1011,11 +1131,11 @@ tbody tr:last-child td { border-bottom: none; }
   <div class="auth-card">
     <div class="logo-lg" role="img" aria-label="VÜO Partners"></div>
     <h1>Revisa tu correo</h1>
-    <p class="sub">Enviamos un codigo de 6 digitos a <strong id="otp-email-label"></strong>. Expira en pocos minutos.</p>
+    <p class="sub">Enviamos un código de 6 dígitos a <strong id="otp-email-label"></strong>. Expira en pocos minutos.</p>
     <div id="otp-msg"></div>
     <form id="form-otp">
       <div class="field">
-        <label for="otp-code">Codigo de acceso</label>
+        <label for="otp-code">Código de acceso</label>
         <input type="text" id="otp-code" class="otp-input" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" required>
       </div>
       <button type="submit" class="btn btn-primary btn-block" id="btn-otp">Verificar e ingresar</button>
@@ -1034,7 +1154,7 @@ tbody tr:last-child td { border-bottom: none; }
       </span>
     </button>
     <div class="divider"></div>
-    <div class="title">Gestion de Solicitudes</div>
+    <div class="title">Gestión de Solicitudes</div>
     <div class="spacer"></div>
     <div class="user">
       <div class="avatar" id="user-avatar">?</div>
@@ -1062,7 +1182,7 @@ tbody tr:last-child td { border-bottom: none; }
         </g>
       </svg>
     </button>
-    <button class="btn btn-secondary btn-sm" id="btn-logout"><span class="txt-largo">Cerrar sesion</span><span class="txt-corto">Salir</span></button>
+    <button class="btn btn-secondary btn-sm" id="btn-logout"><span class="txt-largo">Cerrar sesión</span><span class="txt-corto">Salir</span></button>
   </div>
 
   <!-- ---- listado ---- -->
@@ -1070,7 +1190,7 @@ tbody tr:last-child td { border-bottom: none; }
     <div class="page-head">
       <div>
         <h2>Solicitudes</h2>
-        <p>Consulta, registra y actualiza el estado de las solicitudes del area.</p>
+        <p>Consulta, registra y actualiza el estado de las solicitudes del área.</p>
       </div>
       <div class="spacer"></div>
       <button class="btn btn-primary" id="btn-nueva">+ Nueva solicitud</button>
@@ -1084,9 +1204,10 @@ tbody tr:last-child td { border-bottom: none; }
         <option>Aprobada</option>
         <option>Rechazada</option>
         <option>Completada</option>
+        <option>Anulada</option>
       </select>
-      <select id="filtro-area" aria-label="Filtrar por area">
-        <option value="">Todas las areas</option>
+      <select id="filtro-area" aria-label="Filtrar por área">
+        <option value="">Todas las áreas</option>
       </select>
       <select id="filtro-tipo" aria-label="Filtrar por tipo de solicitud">
         <option value="">Todos los tipos</option>
@@ -1146,7 +1267,7 @@ tbody tr:last-child td { border-bottom: none; }
             <label for="c-solicitante">Solicitante</label>
             <input type="text" id="c-solicitante" readonly tabindex="-1"
                    aria-describedby="c-identidad-hint" required>
-            <span class="field-hint" id="c-identidad-hint">Se toma de tu sesion activa.</span>
+            <span class="field-hint" id="c-identidad-hint">Se toma de tu sesión activa.</span>
           </div>
           <div class="field">
             <label for="c-correo">Correo</label>
@@ -1154,14 +1275,14 @@ tbody tr:last-child td { border-bottom: none; }
                    aria-describedby="c-identidad-hint" required>
           </div>
           <div class="field">
-            <label for="c-area">Area</label>
+            <label for="c-area">Área</label>
             <select id="c-area" required>
-              <option value="">Selecciona un area</option>
-              <option>Gestion Financiera</option>
+              <option value="">Selecciona un área</option>
+              <option value="Gestion Financiera">Gestión Financiera</option>
               <option>Talento y Cultura</option>
               <option>Operaciones</option>
               <option>Compras</option>
-              <option>Tecnologia</option>
+              <option value="Tecnologia">Tecnología</option>
               <option>Legal</option>
             </select>
           </div>
@@ -1172,12 +1293,12 @@ tbody tr:last-child td { border-bottom: none; }
               <option>Factura</option>
               <option>Expediente</option>
               <option>Evidencia</option>
-              <option>Cotizacion</option>
+              <option value="Cotizacion">Cotización</option>
               <option>Pago</option>
               <option>Acceso</option>
               <option>Contrato</option>
               <option>Reporte</option>
-              <option>Certificacion</option>
+              <option value="Certificacion">Certificación</option>
               <option>Orden de Compra</option>
               <option>Reembolso</option>
               <option>Incidencia</option>
@@ -1195,7 +1316,7 @@ tbody tr:last-child td { border-bottom: none; }
             </select>
           </div>
           <div class="field full">
-            <label for="c-descripcion">Descripcion</label>
+            <label for="c-descripcion">Descripción</label>
             <textarea id="c-descripcion" placeholder="Describe brevemente el motivo de la solicitud" required></textarea>
           </div>
         </div>
@@ -1229,6 +1350,20 @@ tbody tr:last-child td { border-bottom: none; }
   </svg>
 </button>
 
+<div class="modal-fondo hidden" id="modal-eliminar" role="dialog" aria-modal="true"
+     aria-labelledby="modal-titulo" aria-describedby="modal-texto">
+  <div class="modal">
+    <h3 id="modal-titulo">Anular solicitud</h3>
+    <p id="modal-texto">La solicitud <b id="modal-id"></b> dejará de aparecer en el listado.</p>
+    <p class="nota">El registro no se borra de la hoja: queda marcado como anulado y puede
+       restaurarse. El historial de la solicitud se conserva.</p>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="modal-cancelar">Cancelar</button>
+      <button class="btn btn-danger" id="modal-confirmar">Sí, anular</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -1240,6 +1375,11 @@ tbody tr:last-child td { border-bottom: none; }
 var API = '/webhook';
 
 var ESTADOS = ['Pendiente', 'En Proceso', 'Aprobada', 'Rechazada', 'Completada'];
+
+/* El borrado es logico: la solicitud no se elimina de la hoja, pasa a este
+   estado terminal y deja de aparecer en el listado operativo. La trazabilidad
+   se conserva y la accion es reversible. */
+var ANULADA = 'Anulada';
 
 /* Prioridad y estado se ordenan por jerarquia real, no alfabeticamente:
    "Alta" antes que "Baja", y el ciclo de vida en su orden natural. */
@@ -1253,8 +1393,11 @@ var estado = {
   solicitudes: [],
   idActual: null,
   prioridad: '',
-  orden: { campo: 'ID Solicitud', dir: 'asc' }
+  orden: { campo: 'ID Solicitud', dir: 'asc' },
+  pagina: 1
 };
+
+var POR_PAGINA = 10;
 
 /* ---------------- helpers ---------------- */
 function $(id) { return document.getElementById(id); }
@@ -1342,6 +1485,7 @@ function claseBadge(est) {
   if (e.indexOf('proceso') >= 0) return 'badge-proceso';
   if (e.indexOf('aprobada') >= 0) return 'badge-aprobada';
   if (e.indexOf('rechazada') >= 0) return 'badge-rechazada';
+  if (e.indexOf('anulada') >= 0) return 'badge-anulada';
   return 'badge-completada';
 }
 
@@ -1378,7 +1522,7 @@ function api(metodo, ruta, cuerpo) {
 
       if (res.status === 401) {
         cerrarSesionLocal();
-        throw new Error('Tu sesion expiro. Inicia sesion de nuevo.');
+        throw new Error('Tu sesión expiró. Inicia sesión de nuevo.');
       }
       if (!res.ok) {
         throw new Error(data.mensaje || 'Error ' + res.status);
@@ -1455,7 +1599,7 @@ $('form-login').addEventListener('submit', function (ev) {
   }).catch(function (err) {
     mensaje('login-msg', err.message);
   }).then(function () {
-    cargando(btn, false, 'Enviar codigo');
+    cargando(btn, false, 'Enviar código');
   });
 });
 
@@ -1490,14 +1634,14 @@ $('btn-logout').addEventListener('click', function () {
   btn.disabled = true;
 
   api('POST', '/auth/logout', {}).then(function () {
-    toast('Sesion cerrada correctamente', 'ok');
+    toast('Sesión cerrada correctamente', 'ok');
   }).catch(function () {
     /* el logout es idempotente: si ya no habia sesion, igual salimos */
   }).then(function () {
     btn.disabled = false;
     cerrarSesionLocal();
     $('login-email').value = '';
-    mensaje('login-msg', 'Cerraste sesion. Ingresa tu correo para volver a entrar.', 'info');
+    mensaje('login-msg', 'Cerraste sesión. Ingresa tu correo para volver a entrar.', 'info');
   });
 });
 
@@ -1533,7 +1677,7 @@ function iniciarApp() {
 }
 
 /* ---------------- listado ---------------- */
-function cargarSolicitudes() {
+function cargarSolicitudes(idAMostrar) {
   $('lista-contenido').innerHTML = '<div class="loading"><div class="spinner"></div>Cargando solicitudes...</div>';
 
   api('GET', '/solicitudes').then(function (data) {
@@ -1541,6 +1685,9 @@ function cargarSolicitudes() {
       return s && s['ID Solicitud'];
     });
     poblarFiltros(estado.solicitudes);
+    /* Tras crear una solicitud saltamos a la pagina donde quedo: si no, el
+       usuario vuelve al listado y no ve por ningun lado lo que acaba de crear. */
+    if (idAMostrar) estado.pagina = paginaDe(idAMostrar);
     renderLista();
   }).catch(function (err) {
     $('lista-contenido').innerHTML = '<div class="empty">' + escapar(err.message) + '</div>';
@@ -1562,7 +1709,8 @@ function poblarSelect(selId, filas, campo, etiquetaTodos) {
   sel.innerHTML = '<option value="">' + escapar(etiquetaTodos) + '</option>';
   vals.forEach(function (v) {
     var o = document.createElement('option');
-    o.textContent = v;
+    o.value = v;                       /* el valor sigue siendo el de la hoja */
+    o.textContent = etiquetaDato(v);   /* solo la etiqueta se acentua */
     sel.appendChild(o);
   });
   /* si el valor filtrado desaparecio de los datos, volvemos a "todos" */
@@ -1570,16 +1718,30 @@ function poblarSelect(selId, filas, campo, etiquetaTodos) {
 }
 
 function poblarFiltros(filas) {
-  poblarSelect('filtro-area', filas, 'Area', 'Todas las areas');
+  poblarSelect('filtro-area', filas, 'Area', 'Todas las áreas');
   poblarSelect('filtro-tipo', filas, 'Tipo Solicitud', 'Todos los tipos');
 }
 
 /* ---------------- ordenamiento ---------------- */
+/* La hoja guarda los valores tal como llegaron los datos originales, sin
+   acentos. No los reescribimos: el dato es el dato, y cambiarlo rompe la
+   coincidencia con la hoja y con los filtros. Lo que si hacemos es mostrarlos
+   bien escritos, que es cosa de la pantalla, no del registro. */
+var ETIQUETAS_DATO = {
+  'Gestion Financiera': 'Gestión Financiera',
+  'Tecnologia': 'Tecnología',
+  'Cotizacion': 'Cotización',
+  'Certificacion': 'Certificación'
+};
+function etiquetaDato(v) {
+  return ETIQUETAS_DATO[v] || v;
+}
+
 var COLUMNAS = [
   { etiqueta: 'ID', campo: 'ID Solicitud' },
   { etiqueta: 'Fecha', campo: 'Fecha Solicitud' },
   { etiqueta: 'Solicitante', campo: 'Solicitante' },
-  { etiqueta: 'Area', campo: 'Area' },
+  { etiqueta: 'Área', campo: 'Area' },
   { etiqueta: 'Tipo', campo: 'Tipo Solicitud' },
   { etiqueta: 'Prioridad', campo: 'Prioridad' },
   { etiqueta: 'Estado', campo: 'Estado' }
@@ -1625,7 +1787,7 @@ function cambiarOrden(campo) {
     estado.orden.campo = campo;
     estado.orden.dir = 'asc';
   }
-  renderLista();
+  filtrarYRender();
 }
 
 function encabezados() {
@@ -1641,7 +1803,79 @@ function encabezados() {
   }).join('');
 }
 
-function renderLista() {
+/* Numeros de pagina a mostrar: siempre la primera, la ultima y las vecinas de
+   la actual; los saltos se marcan con puntos suspensivos. Con pocas paginas se
+   muestran todas. */
+function numerosPagina(actual, total) {
+  if (total <= 7) {
+    var todas = [];
+    for (var i = 1; i <= total; i++) todas.push(i);
+    return todas;
+  }
+  var set = { 1: true, 2: true };
+  set[total] = true;
+  set[total - 1] = true;
+  for (var p = actual - 1; p <= actual + 1; p++) if (p >= 1 && p <= total) set[p] = true;
+
+  var nums = Object.keys(set).map(Number).sort(function (a, b) { return a - b; });
+  var salida = [];
+  nums.forEach(function (n, i) {
+    if (i && n - nums[i - 1] > 1) salida.push('...');
+    salida.push(n);
+  });
+  return salida;
+}
+
+function paginador(totalPaginas, totalFilas) {
+  if (totalPaginas <= 1) return '';
+
+  var botones = numerosPagina(estado.pagina, totalPaginas).map(function (n) {
+    if (n === '...') return '<span class="pager-hueco">&hellip;</span>';
+    var act = n === estado.pagina;
+    return '<button type="button" class="pager-btn' + (act ? ' is-on' : '') + '"' +
+      ' data-pag="' + n + '"' + (act ? ' aria-current="page"' : '') +
+      ' aria-label="Pagina ' + n + '">' + n + '</button>';
+  }).join('');
+
+  return '<div class="pager">' +
+    '<span class="pager-info">Página ' + estado.pagina + ' de ' + totalPaginas +
+      ' &middot; ' + totalFilas + ' solicitudes</span>' +
+    '<div class="pager-btns">' +
+      '<button type="button" class="pager-btn" data-pag="prev" aria-label="Página anterior"' +
+        (estado.pagina === 1 ? ' disabled' : '') + '>&lsaquo;</button>' +
+      botones +
+      '<button type="button" class="pager-btn" data-pag="next" aria-label="Página siguiente"' +
+        (estado.pagina === totalPaginas ? ' disabled' : '') + '>&rsaquo;</button>' +
+    '</div></div>';
+}
+
+function cablearPaginador(totalPaginas) {
+  var barra = $('lista-contenido').querySelector('.pager');
+  if (!barra) return;
+  barra.addEventListener('click', function (ev) {
+    var btn = ev.target.closest('.pager-btn');
+    if (!btn || btn.disabled) return;
+    var v = btn.getAttribute('data-pag');
+    if (v === 'prev') estado.pagina--;
+    else if (v === 'next') estado.pagina++;
+    else estado.pagina = Number(v);
+    if (estado.pagina < 1) estado.pagina = 1;
+    if (estado.pagina > totalPaginas) estado.pagina = totalPaginas;
+    renderLista();
+  });
+}
+
+/* Cualquier cambio de filtro u orden reordena el conjunto entero, asi que
+   volvemos a la primera pagina: quedarse en la pagina 4 de un resultado que
+   ahora tiene una sola pagina deja la tabla vacia sin explicacion. */
+function filtrarYRender() {
+  estado.pagina = 1;
+  renderLista();
+}
+
+/* Filtros y orden viven aqui para que el listado y el calculo de "en que pagina
+   quedo esta solicitud" usen exactamente el mismo criterio. */
+function filtradas() {
   var fEstado = $('filtro-estado').value;
   var fArea = $('filtro-area').value;
   var fTipo = $('filtro-tipo').value;
@@ -1650,7 +1884,10 @@ function renderLista() {
 
   $('btn-limpiar').classList.toggle('visible', !!(fEstado || fArea || fTipo || fPrio || fTexto));
 
-  var filas = estado.solicitudes.filter(function (s) {
+  return estado.solicitudes.filter(function (s) {
+    /* Las anuladas quedan fuera del listado operativo; para verlas hay que
+       pedirlas explicitamente con el filtro de estado. */
+    if (s['Estado'] === ANULADA && fEstado !== ANULADA) return false;
     if (fEstado && s['Estado'] !== fEstado) return false;
     if (fArea && s['Area'] !== fArea) return false;
     if (fTipo && s['Tipo Solicitud'] !== fTipo) return false;
@@ -1661,32 +1898,57 @@ function renderLista() {
     }
     return true;
   });
+}
 
-  $('contador').textContent = filas.length + (filas.length === 1 ? ' solicitud' : ' solicitudes');
+function paginaDe(id) {
+  var pos = ordenar(filtradas()).findIndex(function (s) { return s['ID Solicitud'] === id; });
+  return pos < 0 ? 1 : Math.floor(pos / POR_PAGINA) + 1;
+}
+
+function renderLista() {
+  var filas = filtradas();
 
   if (!filas.length) {
+    estado.pagina = 1;
+    $('contador').textContent = '0 solicitudes';
     $('lista-contenido').innerHTML = '<div class="empty">No hay solicitudes que coincidan con los filtros.</div>';
     return;
   }
 
   filas = ordenar(filas);
 
+  /* Paginacion. La pagina se acota por si el conjunto encogio (un filtro nuevo,
+     una solicitud eliminada) y la actual quedo fuera de rango. */
+  var totalPaginas = Math.ceil(filas.length / POR_PAGINA);
+  if (estado.pagina > totalPaginas) estado.pagina = totalPaginas;
+  if (estado.pagina < 1) estado.pagina = 1;
+
+  var desde = (estado.pagina - 1) * POR_PAGINA;
+  var pagina = filas.slice(desde, desde + POR_PAGINA);
+
+  $('contador').textContent = filas.length <= POR_PAGINA
+    ? filas.length + (filas.length === 1 ? ' solicitud' : ' solicitudes')
+    : (desde + 1) + '-' + (desde + pagina.length) + ' de ' + filas.length;
+
   var html = '<div class="table-wrap"><table><thead><tr>' + encabezados() + '</tr></thead><tbody>';
 
-  filas.forEach(function (s) {
+  pagina.forEach(function (s) {
     html += '<tr data-id="' + escapar(s['ID Solicitud']) + '">' +
       '<td class="cell-id">' + escapar(s['ID Solicitud']) + '</td>' +
       '<td class="cell-muted">' + escapar(fmtFecha(s['Fecha Solicitud'])) + '</td>' +
       '<td>' + escapar(s['Solicitante']) + '</td>' +
-      '<td class="cell-muted">' + escapar(s['Area']) + '</td>' +
-      '<td class="cell-muted">' + escapar(s['Tipo Solicitud']) + '</td>' +
+      '<td class="cell-muted">' + escapar(etiquetaDato(s['Area'])) + '</td>' +
+      '<td class="cell-muted">' + escapar(etiquetaDato(s['Tipo Solicitud'])) + '</td>' +
       '<td><span class="prio ' + clasePrioridad(s['Prioridad']) + '">' + escapar(s['Prioridad']) + '</span></td>' +
       '<td><span class="badge ' + claseBadge(s['Estado']) + '">' + escapar(s['Estado']) + '</span></td>' +
       '</tr>';
   });
 
   html += '</tbody></table></div>';
+  html += paginador(totalPaginas, filas.length);
   $('lista-contenido').innerHTML = html;
+
+  cablearPaginador(totalPaginas);
 
   var filasDom = $('lista-contenido').querySelectorAll('tbody tr');
   Array.prototype.forEach.call(filasDom, function (tr) {
@@ -1711,10 +1973,10 @@ function marcarChip(valor) {
   });
 }
 
-$('filtro-estado').addEventListener('change', renderLista);
-$('filtro-area').addEventListener('change', renderLista);
-$('filtro-tipo').addEventListener('change', renderLista);
-$('filtro-texto').addEventListener('input', renderLista);
+$('filtro-estado').addEventListener('change', filtrarYRender);
+$('filtro-area').addEventListener('change', filtrarYRender);
+$('filtro-tipo').addEventListener('change', filtrarYRender);
+$('filtro-texto').addEventListener('input', filtrarYRender);
 $('btn-refrescar').addEventListener('click', cargarSolicitudes);
 
 $('filtro-prioridad').addEventListener('click', function (ev) {
@@ -1722,7 +1984,7 @@ $('filtro-prioridad').addEventListener('click', function (ev) {
   if (!btn) return;
   estado.prioridad = btn.getAttribute('data-prio') || '';
   marcarChip(estado.prioridad);
-  renderLista();
+  filtrarYRender();
 });
 
 $('btn-limpiar').addEventListener('click', function () {
@@ -1732,7 +1994,7 @@ $('btn-limpiar').addEventListener('click', function () {
   $('filtro-texto').value = '';
   estado.prioridad = '';
   marcarChip('');
-  renderLista();
+  filtrarYRender();
 });
 
 /* ---------------- detalle ---------------- */
@@ -1759,7 +2021,7 @@ function campo(k, v, ancho) {
 function renderDetalle(s, doc) {
   var html = '<div class="card">';
 
-  html += '<div class="card-head"><h3>Informacion de la solicitud</h3><div class="spacer"></div>' +
+  html += '<div class="card-head"><h3>Información de la solicitud</h3><div class="spacer"></div>' +
     '<span class="badge ' + claseBadge(s['Estado']) + '">' + escapar(s['Estado']) + '</span></div>';
 
   html += '<div class="detail-grid">';
@@ -1768,10 +2030,10 @@ function renderDetalle(s, doc) {
   html += campo('ID Empleado', escapar(s['ID Empleado']));
   html += campo('Solicitante', escapar(s['Solicitante']));
   html += campo('Correo', escapar(s['Correo']));
-  html += campo('Area', escapar(s['Area']));
-  html += campo('Tipo de solicitud', escapar(s['Tipo Solicitud']));
+  html += campo('Área', escapar(etiquetaDato(s['Area'])));
+  html += campo('Tipo de solicitud', escapar(etiquetaDato(s['Tipo Solicitud'])));
   html += campo('Prioridad', '<span class="prio ' + clasePrioridad(s['Prioridad']) + '">' + escapar(s['Prioridad']) + '</span>');
-  html += campo('Descripcion', escapar(s['Descripcion']), true);
+  html += campo('Descripción', escapar(s['Descripcion']), true);
   html += '</div>';
 
   if (doc && doc.url) {
@@ -1786,24 +2048,100 @@ function renderDetalle(s, doc) {
     html += '<div class="doc-box" style="border-left-color:var(--border-strong)">' +
       '<div class="doc-icon" style="background:var(--st-comp-bg);color:var(--text-faint)">--</div>' +
       '<div><div class="name">' + escapar(s['Nombre Archivo'] || 'Sin documento') + '</div>' +
-      '<div class="meta">No se encontro el archivo en Google Drive</div></div>' +
+      '<div class="meta">No se encontró el archivo en Google Drive</div></div>' +
       '</div>';
   }
 
-  html += '<div class="estado-bar">' +
-    '<div class="field"><label for="nuevo-estado">Actualizar estado</label><select id="nuevo-estado">';
+  var anulada = s['Estado'] === ANULADA;
 
-  ESTADOS.forEach(function (e) {
-    html += '<option' + (e === s['Estado'] ? ' selected' : '') + '>' + escapar(e) + '</option>';
-  });
+  html += '<div class="estado-bar">';
 
-  html += '</select></div><button class="btn btn-primary" id="btn-guardar-estado">Guardar cambio</button></div>';
-  html += '</div>';
+  if (anulada) {
+    /* Una solicitud anulada no se edita: primero se restaura y luego se opera
+       sobre ella, para que no haya cambios de estado sobre algo "borrado". */
+    html += '<div class="field"><label>Estado</label>' +
+      '<div style="padding-top:4px"><span class="badge badge-anulada">Anulada</span></div></div>' +
+      '<button class="btn btn-restaurar peligro" id="btn-restaurar">Restaurar solicitud</button>';
+  } else {
+    html += '<div class="field"><label for="nuevo-estado">Actualizar estado</label><select id="nuevo-estado">';
+    ESTADOS.forEach(function (e) {
+      html += '<option' + (e === s['Estado'] ? ' selected' : '') + '>' + escapar(e) + '</option>';
+    });
+    html += '</select></div>' +
+      '<button class="btn btn-primary" id="btn-guardar-estado">Guardar cambio</button>' +
+      '<button class="btn btn-danger peligro" id="btn-eliminar">Anular solicitud</button>';
+  }
+
+  html += '</div></div>';
 
   $('detalle-contenido').innerHTML = html;
 
-  $('btn-guardar-estado').addEventListener('click', function () {
-    guardarEstado(s['ID Solicitud'], $('nuevo-estado').value);
+  if (anulada) {
+    $('btn-restaurar').addEventListener('click', function () {
+      cargando(this, true);
+      cambiarEstado(s['ID Solicitud'], 'Pendiente', 'Solicitud restaurada');
+    });
+  } else {
+    $('btn-guardar-estado').addEventListener('click', function () {
+      guardarEstado(s['ID Solicitud'], $('nuevo-estado').value);
+    });
+    $('btn-eliminar').addEventListener('click', function () {
+      pedirConfirmacion(s['ID Solicitud']);
+    });
+  }
+}
+
+/* ---------------- anular / restaurar ---------------- */
+var pendienteDeAnular = null;
+
+function pedirConfirmacion(id) {
+  pendienteDeAnular = id;
+  $('modal-id').textContent = id;
+  $('modal-eliminar').classList.remove('hidden');
+  $('modal-cancelar').focus();
+}
+
+function cerrarConfirmacion() {
+  pendienteDeAnular = null;
+  $('modal-eliminar').classList.add('hidden');
+}
+
+$('modal-cancelar').addEventListener('click', cerrarConfirmacion);
+
+$('modal-eliminar').addEventListener('click', function (ev) {
+  if (ev.target === this) cerrarConfirmacion();
+});
+
+document.addEventListener('keydown', function (ev) {
+  if (ev.key === 'Escape' && !$('modal-eliminar').classList.contains('hidden')) cerrarConfirmacion();
+});
+
+$('modal-confirmar').addEventListener('click', function () {
+  if (!pendienteDeAnular) return;
+  var id = pendienteDeAnular;
+  cargando(this, true);
+  cambiarEstado(id, ANULADA, 'Solicitud ' + id + ' anulada', function () {
+    cerrarConfirmacion();
+    cargando($('modal-confirmar'), false, 'Si, anular');
+    mostrarPanel('panel-lista');
+    renderLista();
+  }, function () {
+    cargando($('modal-confirmar'), false, 'Si, anular');
+  });
+});
+
+/* Anular y restaurar son el mismo movimiento: cambiar el estado de la fila.
+   Por eso reusan el flujo de actualizacion que ya existe, sin endpoint nuevo. */
+function cambiarEstado(id, nuevo, mensajeOk, alTerminar, alFallar) {
+  return api('PATCH', '/solicitud', { id: id, estado: nuevo }).then(function () {
+    estado.solicitudes.forEach(function (s) {
+      if (s['ID Solicitud'] === id) s['Estado'] = nuevo;
+    });
+    toast(mensajeOk, 'ok');
+    if (alTerminar) alTerminar(); else abrirDetalle(id);
+  }).catch(function (err) {
+    toast(err.message, 'err');
+    if (alFallar) alFallar(); else abrirDetalle(id);
   });
 }
 
@@ -1876,7 +2214,7 @@ $('form-crear').addEventListener('submit', function (ev) {
     var nuevoId = data.solicitud && (data.solicitud['ID Solicitud'] || data.solicitud.id);
     toast('Solicitud ' + (nuevoId || '') + ' registrada', 'ok');
     mostrarPanel('panel-lista');
-    cargarSolicitudes();
+    cargarSolicitudes(nuevoId);
   }).catch(function (err) {
     mensaje('crear-msg', err.message);
   }).then(function () {
